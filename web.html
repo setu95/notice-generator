@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>স্মার্ট অফিশিয়াল নোটিশ জেনারেটর - রাষ্ট্রবিজ্ঞান বিভাগ, দিনাজপুর সরকারি কলেজ</title>
+    <!-- Tiro Bangla Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&display=swap" rel="stylesheet">
+    <!-- html2pdf Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --primary-hover: #172554;
+            --accent: #059669;
+            --bg: #f1f5f9;
+            --card-bg: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Tiro Bangla', serif;
+            background-color: var(--bg);
+            color: #1e293b;
+            padding: 12px;
+        }
+
+        .app-container {
+            max-width: 1320px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        @media (max-width: 1024px) {
+            .app-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ================= LEFT PANEL ================= */
+        .control-panel {
+            background: var(--card-bg);
+            padding: 18px;
+            border-radius: 14px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+        }
+
+        .panel-title {
+            font-size: 20px;
+            color: var(--primary);
+            margin-bottom: 4px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-subtitle {
+            font-size: 13.5px;
+            color: #64748b;
+            margin-bottom: 14px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13.5px;
+            font-weight: bold;
+            margin-bottom: 4px;
+            color: #334155;
+        }
+
+        .input-field, textarea, select {
+            width: 100%;
+            padding: 9px 11px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-family: 'Tiro Bangla', serif;
+            font-size: 14.5px;
+            outline: none;
+            background: #fff;
+            transition: border 0.2s;
+        }
+
+        .input-field:focus, textarea:focus, select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+        }
+
+        textarea {
+            min-height: 115px;
+            resize: vertical;
+            line-height: 1.55;
+        }
+
+        .api-key-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .btn {
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-family: 'Tiro Bangla', serif;
+            font-size: 15px;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .btn-mic {
+            background-color: #f8fafc;
+            color: #0f172a;
+            border: 1px dashed #94a3b8;
+            margin-top: 8px;
+        }
+
+        .btn-mic.listening {
+            background-color: #fee2e2;
+            color: #dc2626;
+            border-color: #dc2626;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+
+        .btn-generate {
+            background-color: var(--primary);
+            color: white;
+            font-size: 16px;
+            padding: 12px;
+            margin-top: 4px;
+        }
+
+        .btn-generate:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-generate:disabled {
+            background-color: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .btn-print { background-color: var(--accent); color: white; }
+        .btn-pdf { background-color: #0284c7; color: white; }
+        .btn-copy { grid-column: span 2; background-color: #475569; color: white; }
+
+        .status-msg {
+            font-size: 13.5px;
+            margin-top: 10px;
+            text-align: center;
+            min-height: 20px;
+            line-height: 1.4;
+        }
+
+        /* ================= A4 PAPER PREVIEW (STRICT SINGLE-PAGE FIT) ================= */
+        .preview-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 20px;
+        }
+
+        .edit-hint {
+            background: #fef9c3;
+            color: #854d0e;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 13.5px;
+            margin-bottom: 12px;
+            border: 1px solid #fde047;
+            text-align: center;
+        }
+
+        #a4-notice {
+            width: 210mm;
+            min-width: 210mm;
+            height: 297mm; /* Strict A4 Height Lock to prevent multi-page spill */
+            max-height: 297mm;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 12mm 16mm;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+            color: #000000;
+            font-family: 'Tiro Bangla', serif;
+            position: relative;
+            overflow: hidden; /* Clips anything exceeding 1 page */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Exact 3-Column Header with Phone & Email */
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+            border-bottom: 1.8px solid #000;
+            margin-bottom: 8px;
+        }
+
+        .header-table td {
+            vertical-align: top;
+            padding-bottom: 6px;
+        }
+
+        .header-left {
+            width: 42%;
+            text-align: left;
+            font-size: 12.5px;
+            line-height: 1.3;
+        }
+
+        .header-left .dept-bn {
+            font-size: 16.5px;
+            font-weight: bold;
+        }
+
+        .header-left .college-bn {
+            font-size: 17.5px;
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+
+        .header-center {
+            width: 16%;
+            text-align: center;
+            vertical-align: middle !important;
+        }
+
+        .header-center img {
+            width: 62px;
+            height: auto;
+            display: inline-block;
+        }
+
+        .header-right {
+            width: 42%;
+            text-align: right;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 12px;
+            line-height: 1.32;
+        }
+
+        .header-right .dept-en {
+            font-size: 13.5px;
+            font-weight: bold;
+            letter-spacing: 0.3px;
+        }
+
+        .header-right .college-en {
+            font-size: 14.5px;
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+
+        /* Memo & Date Row */
+        .meta-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .meta-left { text-align: left; vertical-align: middle; }
+        .meta-right { text-align: right; vertical-align: middle; }
+
+        .date-box {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .date-stack {
+            display: inline-block;
+            text-align: center;
+            line-height: 1.3;
+        }
+
+        .date-top {
+            border-bottom: 1px solid #000;
+            padding: 0 4px 2px 4px;
+            display: block;
+        }
+
+        .date-bottom {
+            padding-top: 2px;
+            display: block;
+        }
+
+        .sutra-line {
+            font-size: 14px;
+            margin-bottom: 8px;
+            text-align: left;
+            line-height: 1.4;
+        }
+
+        .notice-subject {
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+            text-decoration: underline;
+            text-underline-offset: 4px;
+            margin: 8px 0 12px 0;
+        }
+
+        /* Dynamic AI Content Styling (Auto-compressed to fit 1 page) */
+        .notice-body {
+            font-size: 15px;
+            text-align: justify;
+            line-height: 1.6;
+            flex-grow: 1;
+            overflow: hidden;
+        }
+
+        .notice-body p {
+            margin-bottom: 10px;
+            text-indent: 30px;
+        }
+
+        .notice-body p.no-indent {
+            text-indent: 0;
+        }
+
+        .notice-body .center-bold {
+            text-align: center;
+            font-weight: bold;
+            text-indent: 0;
+            margin: 12px 0;
+            font-size: 15px;
+        }
+
+        .notice-body .warning-box {
+            border: 1.5px solid #000;
+            padding: 10px 14px;
+            margin: 12px auto;
+            width: 92%;
+            font-weight: bold;
+            text-align: justify;
+            text-indent: 0;
+            line-height: 1.5;
+            font-size: 14.5px;
+        }
+
+        .notice-body .event-box {
+            border: 1.2px solid #000;
+            padding: 10px 20px;
+            margin: 12px auto;
+            width: 82%;
+            text-indent: 0;
+        }
+
+        .notice-body .event-box table {
+            width: 100%;
+            border: none;
+            margin: 0;
+        }
+
+        .notice-body .event-box td {
+            border: none !important;
+            padding: 3px 5px !important;
+            text-align: left !important;
+            font-weight: bold;
+            font-size: 14.5px;
+        }
+
+        .notice-body table.routine-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+            text-indent: 0;
+            font-size: 13.5px;
+        }
+
+        .notice-body table.routine-table th,
+        .notice-body table.routine-table td {
+            border: 1px solid #000;
+            padding: 5px 7px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .notice-body table.routine-table th {
+            font-weight: bold;
+            background-color: #f8fafc;
+        }
+
+        .notice-body .instruction-section {
+            margin-top: 10px;
+            text-indent: 0;
+        }
+
+        .notice-body .instruction-title {
+            font-weight: bold;
+            text-decoration: underline;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .notice-body ul.instruction-list,
+        .notice-body ol.instruction-list {
+            margin-left: 18px;
+            text-indent: 0;
+            line-height: 1.5;
+            font-size: 14px;
+        }
+
+        .notice-body .instruction-list li {
+            margin-bottom: 3px;
+            text-align: justify;
+        }
+
+        /* Bottom Signature & Onulipi Wrapper (Locked to bottom) */
+        .footer-wrapper {
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        .signature-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 8px;
+        }
+
+        .sig-right {
+            width: 48%;
+            margin-left: auto;
+            text-align: center;
+            float: right;
+            font-size: 14.5px;
+            line-height: 1.4;
+        }
+
+        .sig-name {
+            font-weight: bold;
+            font-size: 15.5px;
+        }
+
+        .onulipi-section {
+            clear: both;
+            border-top: 1px solid #000;
+            padding-top: 6px;
+            font-size: 13px;
+            line-height: 1.45;
+        }
+
+        .onulipi-title {
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+
+        .onulipi-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        @page {
+            size: A4;
+            margin: 0;
+        }
+
+        @media print {
+            body { background: none; padding: 0; margin: 0; }
+            .control-panel, .edit-hint { display: none !important; }
+            .app-container { display: block; margin: 0; padding: 0; }
+            .preview-wrapper { overflow: visible; padding: 0; }
+            #a4-notice {
+                width: 210mm;
+                height: 297mm;
+                max-height: 297mm;
+                padding: 12mm 16mm;
+                box-shadow: none;
+                margin: 0;
+                page-break-after: avoid;
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <!-- ================= LEFT PANEL: CONTROLS ================= -->
+    <div class="control-panel">
+        <div class="panel-title">🏛️ স্মার্ট নোটিশ জেনারেটর</div>
+        <div class="panel-subtitle">রাষ্ট্রবিজ্ঞান বিভাগ, দিনাজপুর সরকারি কলেজ</div>
+
+        <!-- Gemini API Key Setup -->
+        <div class="form-group">
+            <label>🔑 Gemini API Key:</label>
+            <div class="api-key-row">
+                <input type="password" id="apiKeyInput" class="input-field" placeholder="AIzaSy... এখানে পেস্ট করুন">
+                <button class="btn" style="width: auto; background:#334155; color:white;" onclick="saveApiKey()">সেভ</button>
+            </div>
+        </div>
+
+        <!-- AI Model Selection -->
+        <div class="form-group">
+            <label>🤖 AI Model:</label>
+            <input type="text" id="modelInput" class="input-field" value="gemini-3.8-flash" list="modelOptions">
+            <datalist id="modelOptions">
+                <option value="gemini-3.8-flash">
+                <option value="gemini-3.0-flash">
+                <option value="gemini-2.5-pro">
+            </datalist>
+        </div>
+
+        <!-- College Logo Uploader -->
+        <div class="form-group">
+            <label>🖼️ কলেজের লোগো (স্থায়ীভাবে সেভ থাকবে):</label>
+            <input type="file" id="logoUpload" accept="image/*" class="input-field" style="padding: 6px;" onchange="handleLogoUpload(event)">
+        </div>
+
+        <!-- Memo & Date Inputs -->
+        <div class="form-group">
+            <label>📝 স্মারক নং:</label>
+            <input type="text" id="memoInput" class="input-field" value="দিসক/রা.বি./ক্লাস/২০২৬/১২৫" oninput="syncMeta()">
+        </div>
+
+        <div class="grid-2 form-group">
+            <div>
+                <label>📅 উপরের তারিখ:</label>
+                <input type="text" id="enDateInput" class="input-field" oninput="syncMeta()">
+            </div>
+            <div>
+                <label>📅 নিচের তারিখ:</label>
+                <input type="text" id="bnDateInput" class="input-field" oninput="syncMeta()">
+            </div>
+        </div>
+
+        <!-- Dual Input: Typing + Voice -->
+        <div class="form-group">
+            <label>✍️ কীসের নোটিশ লাগবে? (শর্টে লিখুন বা মুখে বলুন):</label>
+            <textarea id="promptInput" placeholder="যেমন: আগামী ১ নভেম্বর থেকে অনার্স ২য় বর্ষের ক্লাস শুরু..."></textarea>
+            
+            <button type="button" id="micBtn" class="btn btn-mic" onclick="toggleVoiceInput()">
+                🎤 মুখে বলুন (Voice Input)
+            </button>
+        </div>
+
+        <!-- Generate Button -->
+        <button type="button" id="generateBtn" class="btn btn-generate" onclick="generateNotice()">
+            ✨ স্মার্ট নোটিশ তৈরি করুন (Generate)
+        </button>
+
+        <div id="statusMsg" class="status-msg"></div>
+
+        <!-- Action Buttons -->
+        <div class="action-grid">
+            <button type="button" class="btn btn-print" onclick="window.print()">
+                🖨️ প্রিন্ট (A4 এক পাতা)
+            </button>
+            <button type="button" class="btn btn-pdf" onclick="downloadPDF()">
+                📄 PDF ডাউনলোড (1 Page)
+            </button>
+            <button type="button" class="btn btn-copy" onclick="copyHTML()">
+                📋 HTML কোড কপি করুন
+            </button>
+        </div>
+    </div>
+
+    <!-- ================= RIGHT PANEL: A4 LIVE PREVIEW ================= -->
+    <div class="preview-wrapper">
+        <div class="edit-hint">
+            💡 <strong>অটো-ফিট মোড চালু:</strong> নোটিশ যতই বড় হোক না কেন, এআই নিজে থেকেই লেখা সংক্ষিপ্ত করে সিগনেচার ও অনুলিপি সহ **ঠিক এক পাতার (A4)** মধ্যে নিখুঁতভাবে ফিট করে দেবে!
+        </div>
+
+        <div id="a4-notice" contenteditable="true" spellcheck="false">
+            <div class="top-content-wrapper">
+                <!-- Exact 3-Column Header -->
+                <table class="header-table">
+                    <tr>
+                        <td class="header-left">
+                            <div class="dept-bn">রাষ্ট্রবিজ্ঞান বিভাগ</div>
+                            <div class="college-bn">দিনাজপুর সরকারি কলেজ</div>
+                            <div>টেলিফোন : ০২৫৮৮৮১৭৭০৪</div>
+                            <div>E-mail : psd.dgc@gmail.com</div>
+                        </td>
+                        <td class="header-center">
+                            <img id="collegeLogoImg" 
+                                 src="https://images.seeklogo.com/logo-png/44/1/dinajpur-govt-college-logo-png_seeklogo-449926.png" 
+                                 referrerpolicy="no-referrer" 
+                                 alt="লোগো">
+                        </td>
+                        <td class="header-right">
+                            <div class="dept-en">DEPARTMENT OF POLITICAL SCIENCE</div>
+                            <div class="college-en">Dinajpur Government College</div>
+                            <div>Telephone : 02588817704</div>
+                            <div>E-mail : psd.dgc@gmail.com</div>
+                        </td>
+                    </tr>
+                </table>
+
+                <!-- Memo & Date Row -->
+                <table class="meta-table">
+                    <tr>
+                        <td class="meta-left">
+                            স্মারক নং- <span id="previewMemo">দিসক/রা.বি./ক্লাস/২০২৬/১২৫</span>
+                        </td>
+                        <td class="meta-right">
+                            <div class="date-box">
+                                <span>তারিখ:</span>
+                                <div class="date-stack">
+                                    <span class="date-top" id="previewEnDate">২৪ অক্টোবর ২০২৬</span>
+                                    <span class="date-bottom" id="previewBnDate">০৮ কার্তিক ১৪৩৩ বঙ্গাব্দ</span>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+
+                <div class="sutra-line" id="noticeSutra" style="display: none;"></div>
+
+                <div class="notice-subject" id="noticeSubject">
+                    বিষয়: ২০২৪-২০২৫ শিক্ষাবর্ষের অনার্স ২য় বর্ষের ক্লাস শুরু সংক্রান্ত বিজ্ঞপ্তি।
+                </div>
+
+                <div class="notice-body" id="noticeBody">
+                    <p>এতদ্বারা রাষ্ট্রবিজ্ঞান বিভাগের ২০২৪-২০২৫ শিক্ষাবর্ষের অনার্স ২য় বর্ষের শিক্ষার্থীদের সদয় অবগতির জন্য জানানো যাচ্ছে যে, আগামী ০১ নভেম্বর ২০২৬ (রবিবার) থেকে তাদের ২য় বর্ষের নিয়মিত ক্লাস শুরু হবে। উল্লেখ্য, ক্লাসসমূহ পূর্বনির্ধারিত রুটিন অনুযায়ী পরিচালিত হবে।</p>
+                    
+                    <div class="center-bold">
+                        এমতাবস্থায়, সংশ্লিষ্ট সকল শিক্ষার্থীকে রুটিন অনুযায়ী নিয়মিত ক্লাসে উপস্থিত থাকার জন্য কঠোরভাবে নির্দেশ দেওয়া হলো।
+                    </div>
+
+                    <div class="warning-box">
+                        বিশেষ সতর্কতা: জাতীয় বিশ্ববিদ্যালয়ের নিয়ম মোতাবেক ক্লাসে ন্যূনতম ৬০% উপস্থিতি সম্পন্ন না হলে কোনো শিক্ষার্থীকে চূড়ান্ত পরীক্ষার ফরম পূরণের অনুমতি দেওয়া হবে না (ফরম পূরণের অযোগ্য বলে বিবেচিত হবে)।
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Wrapper -->
+            <div class="footer-wrapper">
+                <table class="signature-table">
+                    <tr>
+                        <td>
+                            <div class="sig-right">
+                                <div class="sig-name">প্রফেসর মো. মর্তুজা আলী</div>
+                                <div>বিভাগীয় প্রধান, রাষ্ট্রবিজ্ঞান বিভাগ</div>
+                                <div>দিনাজপুর সরকারি কলেজ</div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+
+                <div class="onulipi-section">
+                    <div class="onulipi-title">অনুলিপি (সদয় অবগতি ও প্রয়োজনীয় ব্যবস্থা গ্রহণের জন্য):</div>
+                    <ul class="onulipi-list" id="onulipiList">
+                        <li>০১। সকল শিক্ষক, রাষ্ট্রবিজ্ঞান বিভাগ, দিনাজপুর সরকারি কলেজ (শ্রেণি কার্যক্রমে উপস্থিত থাকার বিনীত অনুরোধসহ)।</li>
+                        <li>০২। ক্লাস রিপ্রেজেনটেটিভ (CR), ২০২৪-২০২৫ শিক্ষাবর্ষ (সকল শিক্ষার্থীকে অবহিত করার নির্দেশসহ)।</li>
+                        <li>০৩। নোটিশ বোর্ড / অফিস কপি।</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toBnDigits(num) {
+        const bn = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+        return String(num).replace(/\d/g, d => bn[d]);
+    }
+
+    function getBanglaDateString(date) {
+        const day = date.getDate();
+        const month = date.getMonth() + 1;
+        const year = date.getFullYear();
+        const isLeap = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+
+        const bnMonths = [
+            "বৈশাখ", "জ্যৈষ্ঠ", "আষাঢ়", "শ্রাবণ", "ভাদ্র", "আশ্বিন",
+            "কার্তিক", "অগ্রহায়ণ", "পৌষ", "মাঘ", "ফাল্গুন", "চৈত্র"
+        ];
+
+        let bnYear = (month < 4 || (month === 4 && day < 14)) ? year - 594 : year - 593;
+        let bnMonthIndex = 0;
+        let bnDay = 1;
+
+        const monthStarts = [
+            { m: 4, d: 14 }, { m: 5, d: 15 }, { m: 6, d: 15 }, { m: 7, d: 16 },
+            { m: 8, d: 16 }, { m: 9, d: 16 }, { m: 10, d: 17 }, { m: 11, d: 16 },
+            { m: 12, d: 16 }, { m: 1, d: 15 }, { m: 2, d: 14 }, { m: 3, d: 15 }
+        ];
+
+        const daysInGregMonth = [0, 31, isLeap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+        for (let i = 0; i < 12; i++) {
+            const start = monthStarts[i];
+            const next = monthStarts[(i + 1) % 12];
+            if (month === start.m && day >= start.d) {
+                bnMonthIndex = i;
+                bnDay = day - start.d + 1;
+                break;
+            } else if (month === next.m && day < next.d) {
+                bnMonthIndex = i;
+                bnDay = (daysInGregMonth[start.m] - start.d + 1) + day;
+                break;
+            }
+        }
+
+        const paddedDay = bnDay < 10 ? '0' + bnDay : bnDay;
+        return `${toBnDigits(paddedDay)} ${bnMonths[bnMonthIndex]} ${toBnDigits(bnYear)} বঙ্গাব্দ`;
+    }
+
+    function getEnglishDateInBangla(date) {
+        const enMonthsBn = [
+            "জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন",
+            "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর"
+        ];
+        const d = date.getDate();
+        const paddedD = d < 10 ? '0' + d : d;
+        const m = enMonthsBn[date.getMonth()];
+        const y = date.getFullYear();
+        return `${toBnDigits(paddedD)} ${m} ${toBnDigits(y)}`;
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const savedKey = localStorage.getItem('dgc_gemini_api_key');
+        if (savedKey) document.getElementById('apiKeyInput').value = savedKey;
+
+        const savedModel = localStorage.getItem('dgc_gemini_model');
+        if (savedModel) document.getElementById('modelInput').value = savedModel;
+
+        const savedLogo = localStorage.getItem('dgc_custom_logo_base64');
+        if (savedLogo) {
+            document.getElementById('collegeLogoImg').src = savedLogo;
+        }
+
+        const now = new Date();
+        document.getElementById('enDateInput').value = getEnglishDateInBangla(now);
+        document.getElementById('bnDateInput').value = getBanglaDateString(now);
+        syncMeta();
+    });
+
+    function handleLogoUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const base64Img = e.target.result;
+            document.getElementById('collegeLogoImg').src = base64Img;
+            localStorage.setItem('dgc_custom_logo_base64', base64Img);
+            showStatus('✅ লোগো স্থায়ীভাবে সেভ হয়েছে!', 'green');
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function saveApiKey() {
+        const key = document.getElementById('apiKeyInput').value.trim();
+        if (!key) {
+            showStatus('অনুগ্রহ করে সঠিক API Key দিন।', 'red');
+            return;
+        }
+        localStorage.setItem('dgc_gemini_api_key', key);
+        showStatus('✅ API Key সেভ হয়েছে!', 'green');
+    }
+
+    function syncMeta() {
+        document.getElementById('previewMemo').innerText = document.getElementById('memoInput').value;
+        document.getElementById('previewEnDate').innerText = document.getElementById('enDateInput').value;
+        document.getElementById('previewBnDate').innerText = document.getElementById('bnDateInput').value;
+    }
+
+    let recognition = null;
+    let isListening = false;
+
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechRecognition();
+        recognition.lang = 'bn-BD';
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        recognition.onstart = () => {
+            isListening = true;
+            const btn = document.getElementById('micBtn');
+            btn.classList.add('listening');
+            btn.innerHTML = '🔴 কথা বলুন... (শোনা হচ্ছে)';
+            showStatus('মাইক্রোফোন চালু আছে...', '#dc2626');
+        };
+
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            const textarea = document.getElementById('promptInput');
+            textarea.value = (textarea.value ? textarea.value + ' ' : '') + transcript;
+            showStatus('✅ কথা টেক্সট বক্সে যুক্ত হয়েছে!', 'green');
+        };
+
+        recognition.onerror = (event) => {
+            showStatus('ভয়েস ত্রুটি: ' + event.error, 'red');
+        };
+
+        recognition.onend = () => {
+            isListening = false;
+            const btn = document.getElementById('micBtn');
+            btn.classList.remove('listening');
+            btn.innerHTML = '🎤 মুখে বলুন (Voice Input)';
+        };
+    }
+
+    function toggleVoiceInput() {
+        if (!recognition) {
+            alert('আপনার ব্রাউজারে Voice Input সাপোর্ট করছে না।');
+            return;
+        }
+        if (isListening) {
+            recognition.stop();
+        } else {
+            recognition.start();
+        }
+    }
+
+    // Auto-Fit Smart AI Engine
+    async function generateNotice() {
+        const apiKey = document.getElementById('apiKeyInput').value.trim() || localStorage.getItem('dgc_gemini_api_key');
+        const userPrompt = document.getElementById('promptInput').value.trim();
+        const preferredModel = document.getElementById('modelInput').value.trim() || 'gemini-3.8-flash';
+
+        if (!apiKey) {
+            showStatus('⚠️ উপরে আপনার Gemini API Key দিন!', 'red');
+            return;
+        }
+        if (!userPrompt) {
+            showStatus('⚠️ নোটিশের বিষয়বস্তু লিখুন বা বলুন!', 'red');
+            return;
+        }
+
+        localStorage.setItem('dgc_gemini_api_key', apiKey);
+        localStorage.setItem('dgc_gemini_model', preferredModel);
+
+        const btn = document.getElementById('generateBtn');
+        btn.disabled = true;
+        btn.innerHTML = '⏳ এক পেজে ফিট করার জন্য এআই সংক্ষেপ করছে...';
+        showStatus(`Gemini AI (${preferredModel}) নিখুঁতভাবে ১ পাতার ভেতরে নোটিশ সাজাচ্ছে...`, '#1e3a8a');
+
+        const systemInstruction = `You are an intelligent Official Notice Designer for the Department of Political Science, Dinajpur Government College.
+
+CRITICAL RULE FOR LENGTH: 
+The output MUST be concise, precise, and compact so that the ENTIRE notice (Header, Subject, Body, Signature, and Onulipi) fits strictly within ONE single A4 page without spilling over. Keep paragraphs and instructions short and to the point.
+
+AVAILABLE HTML COMPONENTS FOR "body_html":
+1. <p>Formal paragraph...</p>
+2. <div class="center-bold">Short callout line</div>
+3. <div class="warning-box">Warning text (keep short)</div>
+4. <div class="event-box"><table><tr><td style="width:75px;">তারিখ</td><td>: ...</td></tr><tr><td>সময়</td><td>: ...</td></tr><tr><td>ভেন্যু</td><td>: ...</td></tr></table></div>
+5. <table class="routine-table"><thead><tr><th>তারিখ</th><th>...</th></tr></thead><tbody>...</tbody></table>
+6. <div class="instruction-section"><span class="instruction-title">বিশেষ নির্দেশনাবলী:</span><ul class="instruction-list"><li>...</li></ul></div>
+
+Respond ONLY with a valid JSON object matching this exact schema:
+{
+  "memo_suggestion": "দিসক/রা.বি./.../২০২৬/...",
+  "sutra": "",
+  "subject": "বিষয়: [Concise subject line ending with 'সংক্রান্ত বিজ্ঞপ্তি।' or 'প্রসঙ্গে।']",
+  "body_html": "[Compact HTML combining components ensuring 1-page fit]",
+  "onulipi": [
+    "০১। সকল শিক্ষক, রাষ্ট্রবিজ্ঞান বিভাগ, দিনাজপুর সরকারি কলেজ।",
+    "০২। ক্লাস রিপ্রেজেনটেটিভ (CR), ...",
+    "০৩। নোটিশ বোর্ড / অফিস কপি।"
+  ]
+}`;
+
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${preferredModel}:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    system_instruction: { parts: [{ text: systemInstruction }] },
+                    contents: [{ parts: [{ text: userPrompt }] }],
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        temperature: 0.4
+                    }
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error?.message || 'API কানেকশনে সমস্যা হয়েছে।');
+            }
+
+            let rawText = data.candidates[0].content.parts[0].text.trim();
+            rawText = rawText.replace(/^```json\s*/i, '').replace(/```$/i, '').trim();
+            const parsed = JSON.parse(rawText);
+
+            if (parsed.memo_suggestion) {
+                document.getElementById('memoInput').value = parsed.memo_suggestion;
+                document.getElementById('previewMemo').innerText = parsed.memo_suggestion;
+            }
+
+            const sutraEl = document.getElementById('noticeSutra');
+            if (parsed.sutra && parsed.sutra.trim() !== '') {
+                sutraEl.innerHTML = `<strong>সূত্র:</strong> ${parsed.sutra.replace(/^সূত্র:\s*/, '')}`;
+                sutraEl.style.display = 'block';
+            } else {
+                sutraEl.style.display = 'none';
+            }
+
+            document.getElementById('noticeSubject').innerText = parsed.subject.startsWith('বিষয়') ? parsed.subject : 'বিষয়: ' + parsed.subject;
+            document.getElementById('noticeBody').innerHTML = parsed.body_html;
+
+            if (Array.isArray(parsed.onulipi) && parsed.onulipi.length > 0) {
+                document.getElementById('onulipiList').innerHTML = parsed.onulipi.map(item => `<li>${item}</li>`).join('');
+            }
+
+            showStatus('✅ চমৎকার! সম্পূর্ণ নোটিশটি নিখুঁতভাবে ১ পাতার ভেতরে ফিট করা হয়েছে!', 'green');
+        } catch (err) {
+            console.error(err);
+            showStatus('❌ ত্রুটি: ' + err.message, 'red');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '✨ স্মার্ট নোটিশ তৈরি করুন (Generate)';
+        }
+    }
+
+    function downloadPDF() {
+        const element = document.getElementById('a4-notice');
+        const opt = {
+            margin: 0,
+            filename: 'DGC_Political_Science_Notice.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        showStatus('📄 এক পাতার PDF তৈরি হচ্ছে...', '#0284c7');
+        html2pdf().set(opt).from(element).save().then(() => {
+            showStatus('✅ ১ পাতার PDF ডাউনলোড সম্পন্ন হয়েছে!', 'green');
+        });
+    }
+
+    function copyHTML() {
+        const noticeHTML = document.getElementById('a4-notice').outerHTML;
+        navigator.clipboard.writeText(noticeHTML).then(() => {
+            showStatus('📋 HTML কোড কপি হয়েছে!', 'green');
+        });
+    }
+
+    function showStatus(msg, color) {
+        const el = document.getElementById('statusMsg');
+        el.style.color = color;
+        el.innerText = msg;
+    }
+</script>
+
+</body>
+</html>
